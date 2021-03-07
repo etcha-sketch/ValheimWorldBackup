@@ -149,7 +149,7 @@ function RestoreValheimWolrd
         {
             Write-host "`n`nRestoring the $(($restoreworldoptions[$userchoice-1]).Name) world.`n"
             Push-Location $($restoreworldoptions[$op-1]).FullName
-            $restorepoints = gci *
+            $restorepoints = gci * | Sort-Object -Property Name -Descending
             if ($restorepoints.count -gt 1)
             {
                 Write-host "More than one restore point exists, chose one:"
@@ -174,7 +174,7 @@ function RestoreValheimWolrd
                }
                else
                {
-                   Write-host "OK, no changes will be made."
+                   Write-host "`nOK, no changes will be made."
                }
 
 
@@ -194,7 +194,7 @@ function RestoreValheimWolrd
                 }
                 else
                 {
-                    Write-host "OK, no changes will be made."
+                    Write-host "OK, no changes will be made." -foregroundcolor yellow
                 }
 
 
@@ -252,7 +252,7 @@ function RestoreValheimChar
         {
             Write-host "`n`nRestoring the $(($restorecharoptions[$usercharchoice-1]).Name) character.`n`n"
             Push-Location $($restorecharoptions[$usercharchoice-1]).FullName
-            $restorecharpoints = gci *
+            $restorecharpoints = gci * | Sort-Object -Property Name -Descending
             if ($restorecharpoints.count -gt 1)
             {
                 Write-host "More than one restore point exists, chose one:"
@@ -282,7 +282,7 @@ function RestoreValheimChar
                 }
                 else
                 {
-                    Write-host "OK, no changes will be made."
+                    Write-host "`nOK, no changes will be made." -foregroundcolor yellow
                 }
 
             }
