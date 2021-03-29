@@ -354,6 +354,6 @@ function ShowMenu
     else { Write-host "`n`nPlease make a valid selection" -foregroundcolor red;  start-sleep -seconds 2; ShowMenu }
 }
 ShowMenu
-Write-Host "`n`nThanks for using etcha-sketch`s Valheim Backup Tool!"
+Write-Host "`n`nThanks for using etcha-sketch`'s Valheim Backup Tool!"
 Write-host "Visit https://github.com/etcha-sketch for more useful tools."
 Start-Sleep -Seconds 5
