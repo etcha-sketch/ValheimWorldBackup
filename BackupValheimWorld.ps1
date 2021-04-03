@@ -37,7 +37,8 @@ function BackupValheimWolrds
         {
             New-item -ItemType Directory -Path $backupdir | Out-null
             copy-item $filestobackup $backupdir
-            Write-host "$($world) backed up."
+            Write-host "$($world) backed up." -foregroundcolor green
+			start-sleep -seconds 1
         }
         else
         {
@@ -90,7 +91,8 @@ function BackupValheimChars
         {
             New-item -ItemType Directory -Path $backupdir | Out-null
             copy-item $filestobackup $backupdir
-            Write-host "$($char) backed up."
+            Write-host "$($char) backed up." -foregroundcolor green
+			start-sleep -seconds 1
         }
         else
         {
