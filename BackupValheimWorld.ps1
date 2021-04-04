@@ -19,13 +19,13 @@ function BackupValheimWolrds
         Write-host "`n`nWorld Backup directory already exists.`n"
     }
     
-    $backuppath = ((gci "Backups*")[0]).FullName
+    $backuppath = ((Get-ChildItem "Backups*")[0]).FullName
     
-    $worldnames = ((gci "*.db").Name).Replace('.db','')
+    $worldnames = ((Get-ChildItem "*.db").Name).Replace('.db','')
     
     foreach ($world in $worldnames)
     {
-        $filestobackup = gci "$($world).*"
+        $filestobackup = Get-ChildItem "$($world).*"
         if (!(Test-Path "$($backuppath)\$($world)"))
         {
             Write-host "$($world) Backup directory does not exist, creating now."
@@ -73,13 +73,13 @@ function BackupValheimChars
         Write-host "`n`nCharacter Backup directory already exists.`n"
     }
     
-    $backuppath = ((gci "Backups*")[0]).FullName
+    $backuppath = ((Get-ChildItem "Backups*")[0]).FullName
     
-    $charnames = ((gci "*.fch").Name).Replace('.fch','')
+    $charnames = ((Get-ChildItem "*.fch").Name).Replace('.fch','')
     
     foreach ($char in $charnames)
     {
-        $filestobackup = gci "$($char).*"
+        $filestobackup = Get-ChildItem "$($char).*"
         if (!(Test-Path "$($backuppath)\$($char)"))
         {
             Write-host "$($char) Backup directory does not exist, creating now."
@@ -126,7 +126,7 @@ function RestoreValheimWolrd
     if (Test-path "$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim\worlds\Backups")
     {
         Push-Location "$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim\worlds\Backups"
-        $restoreworldoptions = gci *
+        $restoreworldoptions = Get-ChildItem *
         $op = 0
         Write-host "`n`nChoose a World to restore"
         foreach ($restoreworld in $restoreworldoptions)
@@ -151,7 +151,7 @@ function RestoreValheimWolrd
         {
             Write-host "`n`nRestoring the $(($restoreworldoptions[$userchoice-1]).Name) world.`n"
             Push-Location $($restoreworldoptions[$op-1]).FullName
-            $restorepoints = gci * | Sort-Object -Property Name -Descending
+            $restorepoints = Get-ChildItem * | Sort-Object -Property Name -Descending
             if ($restorepoints.count -gt 1)
             {
                 Write-host "More than one restore point exists, chose one:"
@@ -164,14 +164,14 @@ function RestoreValheimWolrd
 
                $worldrp = Read-host "Choose a restore point"
                if (($worldrp -gt $rp) -or ($worldrp -le 0)) { Write-host "`nInvalid Choice" -ForegroundColor red; start-sleep -Seconds 2; showmenu }               
-               $confirm = Read-host "Would you like to restore $(($restoreworldoptions[$userchoice-1]).Name) to $(((gci "$(($restorepoints[$worldrp-1]).FullName)\*" | Sort-object -Property LastWriteTime -Descending)[0]).LastWriteTime)? y/[n]"
+               $confirm = Read-host "Would you like to restore $(($restoreworldoptions[$userchoice-1]).Name) to $(((Get-ChildItem "$(($restorepoints[$worldrp-1]).FullName)\*" | Sort-object -Property LastWriteTime -Descending)[0]).LastWriteTime)? y/[n]"
                if ($confirm -ieq 'y')
                {
                    #perform backup now.
-                   gci "$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim\worlds\$($restoreworld.name).*" -ErrorAction SilentlyContinue | remove-item -Force -ErrorAction SilentlyContinue
+                   Get-ChildItem "$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim\worlds\$($restoreworld.name).*" -ErrorAction SilentlyContinue | remove-item -Force -ErrorAction SilentlyContinue
                    Start-Sleep -Seconds 2
                    copy-item "$(($restorepoints[$worldrp-1]).FullName)\*" "$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim\worlds\"
-                   Write-host "`n`nRestore completed to $((gci "$(($restorepoints[$worldrp-1]).FullName)\*.db").LastWriteTime)`n`n" -ForegroundColor Green
+                   Write-host "`n`nRestore completed to $((Get-ChildItem "$(($restorepoints[$worldrp-1]).FullName)\*.db").LastWriteTime)`n`n" -ForegroundColor Green
 
                }
                else
@@ -183,15 +183,15 @@ function RestoreValheimWolrd
             }
             else
             {
-                Write-host "Only one backup exists: $(((gci "$($restorepoints.FullName)\*" | Sort-object -Property LastWriteTime -Descending)[0]).LastWriteTime)"
+                Write-host "Only one backup exists: $(((Get-ChildItem "$($restorepoints.FullName)\*" | Sort-object -Property LastWriteTime -Descending)[0]).LastWriteTime)"
                 $confirm = Read-host "Would you like to restore to this time? y/[n]"
                 if ($confirm -ieq 'y')
                 {
                     #perform backup now.
-                    gci "$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim\worlds\$($restoreworld.name).*" -ErrorAction SilentlyContinue | remove-item -Force -ErrorAction SilentlyContinue
+                    Get-ChildItem "$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim\worlds\$($restoreworld.name).*" -ErrorAction SilentlyContinue | remove-item -Force -ErrorAction SilentlyContinue
                     Start-Sleep -Seconds 2
                     copy-item "$($restorepoints.FullName)\*" "$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim\worlds\"
-                    Write-host "`n`nRestore completed to $((gci "$($restorepoints.FullName)\*.db").LastWriteTime)`n`n" -ForegroundColor Green
+                    Write-host "`n`nRestore completed to $((Get-ChildItem "$($restorepoints.FullName)\*.db").LastWriteTime)`n`n" -ForegroundColor Green
 
                 }
                 else
@@ -231,7 +231,7 @@ function RestoreValheimChar
     if (Test-path "$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim\characters\Backups")
     {
         Push-Location "$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim\characters\Backups"
-        $restorecharoptions = gci *
+        $restorecharoptions = Get-ChildItem *
         $charop = 0
         Write-host "`n`nChoose a char to restore"
         foreach ($restorechar in $restorecharoptions)
@@ -254,7 +254,7 @@ function RestoreValheimChar
         {
             Write-host "`n`nRestoring the $(($restorecharoptions[$usercharchoice-1]).Name) character.`n`n"
             Push-Location $($restorecharoptions[$usercharchoice-1]).FullName
-            $restorecharpoints = gci * | Sort-Object -Property Name -Descending
+            $restorecharpoints = Get-ChildItem * | Sort-Object -Property Name -Descending
             if ($restorecharpoints.count -gt 1)
             {
                 Write-host "More than one restore point exists, chose one:"
@@ -271,15 +271,15 @@ function RestoreValheimChar
                 
                 if (($charrp -gt $rp) -or ($charrp -le 0)) { Write-host "`nInvalid Choice" -ForegroundColor red; start-sleep -Seconds 2; showmenu }
                 
-                $confirm = Read-host "Would you like to restore $(($restorecharoptions[$usercharchoice-1]).Name) to $(((gci "$(($restorecharpoints[$charrp-1]).FullName)\*" | Sort-object -Property LastWriteTime -Descending)[0]).LastWriteTime)? y/[n]"
+                $confirm = Read-host "Would you like to restore $(($restorecharoptions[$usercharchoice-1]).Name) to $(((Get-ChildItem "$(($restorecharpoints[$charrp-1]).FullName)\*" | Sort-object -Property LastWriteTime -Descending)[0]).LastWriteTime)? y/[n]"
                 
                 if ($confirm -ieq 'y')
                 {
                     #perform backup now.
-                    gci "$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim\characters\$(($restorecharoptions[$usercharchoice-1]).Name).*" -ErrorAction SilentlyContinue | remove-item -Force -ErrorAction SilentlyContinue
+                    Get-ChildItem "$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim\characters\$(($restorecharoptions[$usercharchoice-1]).Name).*" -ErrorAction SilentlyContinue | remove-item -Force -ErrorAction SilentlyContinue
                     Start-Sleep -Seconds 2
                     copy-item "$(($restorecharpoints[$charrp-1]).FullName)\*" "$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim\characters\"
-                    Write-host "`n`nRestore of $(($restorecharoptions[$usercharchoice-1]).Name) completed to $((gci "$(($restorecharpoints[$charrp-1]).FullName)\*.fch").LastWriteTime)`n`n" -ForegroundColor Green
+                    Write-host "`n`nRestore of $(($restorecharoptions[$usercharchoice-1]).Name) completed to $((Get-ChildItem "$(($restorecharpoints[$charrp-1]).FullName)\*.fch").LastWriteTime)`n`n" -ForegroundColor Green
 
                 }
                 else
@@ -290,15 +290,15 @@ function RestoreValheimChar
             }
             else
             {
-                Write-host "Only one backup exists: $(((gci "$($restorecharpoints.FullName)\*" | Sort-object -Property LastWriteTime -Descending)[0]).LastWriteTime)"
+                Write-host "Only one backup exists: $(((Get-ChildItem "$($restorecharpoints.FullName)\*" | Sort-object -Property LastWriteTime -Descending)[0]).LastWriteTime)"
                 $confirm = Read-host "Would you like to restore to this time? y/[n]"
                 if ($confirm -ieq 'y')
                 {
                     #perform backup now.
-                    gci "$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim\characters\$(($restorecharoptions[$usercharchoice-1]).Name).*" -ErrorAction SilentlyContinue | remove-item -Force -ErrorAction SilentlyContinue
+                    Get-ChildItem "$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim\characters\$(($restorecharoptions[$usercharchoice-1]).Name).*" -ErrorAction SilentlyContinue | remove-item -Force -ErrorAction SilentlyContinue
                     Start-Sleep -Seconds 2
                     copy-item "$($restorecharpoints.FullName)\*" "$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim\characters\"
-                    Write-host "`n`nRestore of $(($restorecharoptions[$usercharchoice-1]).Name) completed to $((gci "$($restorecharpoints.FullName)\*.fch").LastWriteTime)`n`n" -ForegroundColor Green
+                    Write-host "`n`nRestore of $(($restorecharoptions[$usercharchoice-1]).Name) completed to $((Get-ChildItem "$($restorecharpoints.FullName)\*.fch").LastWriteTime)`n`n" -ForegroundColor Green
 
                 }
                 else
@@ -369,7 +369,7 @@ function CleanupBackupDir
             }
             else
             {
-                Write-host "     No backups to clean up in for the $($world.Name) world.`n" -ForegroundColor Yellow
+                Write-host "     No backups to clean up in the $($world.Name) world backup directory.`n" -ForegroundColor Yellow
                 start-sleep -seconds 1
             }
             Pop-Location
@@ -419,7 +419,7 @@ function CleanupBackupDir
             }
             else
             {
-                Write-host "     No backups to clean up in for the $($char.Name) character.`n" -ForegroundColor Yellow
+                Write-host "     No backups to clean up in the $($char.Name) character backup directory.`n" -ForegroundColor Yellow
                 start-sleep -seconds 1
             }
             Pop-Location
