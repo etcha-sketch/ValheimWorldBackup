@@ -1,4 +1,4 @@
-﻿# Valheim Backup and Restore Tool
+# Valheim Backup and Restore Tool
 # Author: Etcha-Sketch
 # https://github.com/etcha-sketch
 
@@ -19,7 +19,7 @@ function BackupValheimWolrds
         Write-host "`n`nWorld Backup directory already exists.`n"
     }
     
-    $backuppath = (gci "Backups*").FullName
+    $backuppath = ((gci "Backups*")[0]).FullName
     
     $worldnames = ((gci "*.db").Name).Replace('.db','')
     
@@ -73,7 +73,7 @@ function BackupValheimChars
         Write-host "`n`nCharacter Backup directory already exists.`n"
     }
     
-    $backuppath = (gci "Backups*").FullName
+    $backuppath = ((gci "Backups*")[0]).FullName
     
     $charnames = ((gci "*.fch").Name).Replace('.fch','')
     
@@ -164,7 +164,7 @@ function RestoreValheimWolrd
 
                $worldrp = Read-host "Choose a restore point"
                if (($worldrp -gt $rp) -or ($worldrp -le 0)) { Write-host "`nInvalid Choice" -ForegroundColor red; start-sleep -Seconds 2; showmenu }               
-               $confirm = Read-host "Would you like to restore to $(((gci "$(($restorepoints[$worldrp-1]).FullName)\*" | Sort-object -Property LastWriteTime -Descending)[0]).LastWriteTime)? y/[n]"
+               $confirm = Read-host "Would you like to restore $(($restoreworldoptions[$userchoice-1]).Name) to $(((gci "$(($restorepoints[$worldrp-1]).FullName)\*" | Sort-object -Property LastWriteTime -Descending)[0]).LastWriteTime)? y/[n]"
                if ($confirm -ieq 'y')
                {
                    #perform backup now.
@@ -271,7 +271,7 @@ function RestoreValheimChar
                 
                 if (($charrp -gt $rp) -or ($charrp -le 0)) { Write-host "`nInvalid Choice" -ForegroundColor red; start-sleep -Seconds 2; showmenu }
                 
-                $confirm = Read-host "Would you like to restore to $(((gci "$(($restorecharpoints[$charrp-1]).FullName)\*" | Sort-object -Property LastWriteTime -Descending)[0]).LastWriteTime)? y/[n]"
+                $confirm = Read-host "Would you like to restore $(($restorecharoptions[$usercharchoice-1]).Name) to $(((gci "$(($restorecharpoints[$charrp-1]).FullName)\*" | Sort-object -Property LastWriteTime -Descending)[0]).LastWriteTime)? y/[n]"
                 
                 if ($confirm -ieq 'y')
                 {
@@ -323,6 +323,116 @@ function RestoreValheimChar
     
 }
 
+function CleanupBackupDir
+{
+    clear-host
+    Write-host "$("-"*60)`n$(" "*17)Backup Directory Cleanup`n$("-"*60)`n`n"
+    [int]$age = Read-host "Delete backup files older than how many days?"
+    if (($age -eq 0) -or ($age -lt 0)) {$age = 14; Write-host "`nDefaulting to 14 days old due to incorrect input.`n" -ForegroundColor Red; start-sleep -Seconds 3 } # Default to 30 if no age is specified.
+    clear-host
+    Write-host "$("-"*60)`n$(" "*20)Backup Cleanup`n$("-"*60)"
+    Write-host "`n`n$("*"*10)  World Backup Cleanup  $("*"*10)`n"
+    ##### World Cleanup
+    if (Test-path "$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim\worlds\Backups")
+    {
+        Write-host "Cleaning up World Backups older than $($age) days."
+        Push-Location "$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim\worlds\Backups"
+        foreach ($world in (Get-ChildItem *))
+        {
+            write-host "`n  Cleaning up the $($world.Name) world backup directory.`n"
+            push-location $world.fullName
+            $oldfiles = Get-ChildItem *.db -Recurse | Where-Object LastWriteTime -lt ((Get-date).AddDays(-1*$age))
+            $allfiles = Get-ChildItem *.db -Recurse
+            if ($oldfiles.count -eq $allfiles.count)
+            {
+                Write-host "     All backups of the $($world.Name) world are older than $($age) days, keeping the most recent." -ForegroundColor Red
+                $oldfilessorted = ($oldfiles | Sort-Object -Property LastWriteTime -Descending)
+                foreach ($oldfile in $oldfilessorted)
+                {
+                    if ($oldfile -ne $oldfilessorted[0])
+                    {
+                        Remove-item $oldfile.DirectoryName -Recurse -Force
+                        write-host "     Removed $($world.Name) backup from $($oldfile.Directory.Name)" -ForegroundColor Green
+                        Start-Sleep -Seconds 1
+                    }
+                }
+                start-sleep -Seconds 1
+            }
+            elseif ($oldfiles.count -gt 0)
+            {
+                foreach ($oldfile in $oldfiles)
+                {
+                    Remove-item $oldfile.DirectoryName -Recurse -Force
+                    write-host "     Removed $($world.Name) backup from $($oldfile.Directory.Name)" -ForegroundColor Green
+                    Start-Sleep -Seconds 1
+                }
+            }
+            else
+            {
+                Write-host "     No backups to clean up in for the $($world.Name) world.`n" -ForegroundColor Yellow
+                start-sleep -seconds 1
+            }
+            Pop-Location
+        }
+        Pop-Location
+    }
+    else
+    {
+        Write-host "No world backup folder detected. Please make a backup before cleaning up directories" -ForegroundColor Red
+    }
+    Start-Sleep -Seconds 3
+    ##### Char Cleanup
+    Write-host "`n`n$("*"*10)  Character Backup Cleanup  $("*"*10)`n"
+    if (Test-path "$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim\characters\Backups")
+    {
+        Write-host "Cleaning up Character Backups older than $($age) days."
+        Push-Location "$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim\characters\Backups"
+        foreach ($char in (Get-ChildItem *))
+        {
+            write-host "`n  Cleaning up the $($char.Name) character backup directory.`n"
+            push-location $char.fullName
+            $oldfiles = Get-ChildItem *.fch -Recurse | Where-Object LastWriteTime -lt ((Get-date).AddDays(-1*$age))
+            $allfiles = Get-ChildItem *.fch -Recurse
+            if ($oldfiles.count -eq $allfiles.count)
+            {
+                Write-host "     All backups of the $($char.Name) character are older than $($age) days, keeping the most recent." -ForegroundColor Red
+                $oldfilessorted = ($oldfiles | Sort-Object -Property LastWriteTime -Descending)
+                foreach ($oldfile in $oldfilessorted)
+                {
+                    if ($oldfile -ne $oldfilessorted[0])
+                    {
+                        Remove-item $oldfile.DirectoryName -Recurse -Force
+                        write-host "     Removed $($char.Name) backup from $($oldfile.Directory.Name)" -ForegroundColor Green
+                        Start-Sleep -Seconds 1
+                    }
+                }
+                
+            }
+            elseif ($oldfiles.count -gt 0)
+            {
+                foreach ($oldfile in $oldfiles)
+                {
+                    Remove-item $oldfile.DirectoryName -Recurse -Force
+                    write-host "     Removed $($char.Name) backup from $($oldfile.Directory.Name)" -ForegroundColor Green
+                    Start-Sleep -Seconds 1
+                }
+            }
+            else
+            {
+                Write-host "     No backups to clean up in for the $($char.Name) character.`n" -ForegroundColor Yellow
+                start-sleep -seconds 1
+            }
+            Pop-Location
+        }
+        Pop-Location
+    }
+    else
+    {
+        Write-host "No character backup folder detected. Please make a backup before cleaning up directories" -ForegroundColor Red
+    }
+    
+}
+
 
 function ShowMenu
 {
@@ -339,7 +449,8 @@ function ShowMenu
     Write-host "3) Backup All Characters"
     Write-host "4) Restore a World"
     Write-host "5) Restore a Character"
-    Write-host "6) Open Valheim save folder in Windows Explorer"
+    Write-host "6) Cleanup old files in backup directory"
+    Write-host "7) Open Valheim save folder in Windows Explorer"
     Write-host "`n0) Exit Tool`n"
     $option = read-host "What would you like to do?"
     
@@ -352,10 +463,11 @@ function ShowMenu
     elseif ($option -eq 3) { BackupValheimChars; start-sleep -seconds 2; ShowMenu }
     elseif ($option -eq 4) { RestoreValheimWolrd; start-sleep -seconds 2; ShowMenu }
     elseif ($option -eq 5) { RestoreValheimChar; start-sleep -seconds 2; ShowMenu }
-    elseif ($option -eq 6) { Start-process 'C:\Windows\explorer.exe' -ArgumentList @("$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim") ; start-sleep -seconds 2; ShowMenu }
+    elseif ($option -eq 6) { CleanupBackupDir; start-sleep -seconds 2; ShowMenu }
+    elseif ($option -eq 7) { Start-process 'C:\Windows\explorer.exe' -ArgumentList @("$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim") ; start-sleep -seconds 2; ShowMenu }
     else { Write-host "`n`nPlease make a valid selection" -foregroundcolor red;  start-sleep -seconds 2; ShowMenu }
 }
 ShowMenu
-Write-Host "`n`nThanks for using etcha-sketch`'s Valheim Backup Tool!"
+Write-Host "`n`nThanks for using etcha-sketch`s Valheim Backup Tool!"
 Write-host "Visit https://github.com/etcha-sketch for more useful tools."
 Start-Sleep -Seconds 5
