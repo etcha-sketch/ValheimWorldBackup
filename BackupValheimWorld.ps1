@@ -437,6 +437,12 @@ function CleanupBackupDir
 function ShowMenu
 {
 
+    # Generate Size Info
+    $wsize = (Get-ChildItem "$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim\worlds\Backups\*" -Recurse | Measure-Object -Sum Length).Sum
+    $csize = (Get-ChildItem "$(($env:APPDATA).Replace('Roaming','LocalLow'))\IronGate\Valheim\characters\Backups\*" -Recurse | Measure-Object -Sum Length).Sum
+    $tsize = (($wsize+$csize)/1MB).ToString("#.##")
+
+
     Clear-Host
     Write-Host '---------------------------------------------------------'
     Write-Host '          etcha-sketch`s Valheim Backup Tool'
@@ -449,7 +455,7 @@ function ShowMenu
     Write-host "3) Backup All Characters"
     Write-host "4) Restore a World"
     Write-host "5) Restore a Character"
-    Write-host "6) Cleanup old files in backup directory"
+    Write-host "6) Cleanup old files in backup directory (Total Size of Backups: $($tsize)MB)"
     Write-host "7) Open Valheim save folder in Windows Explorer"
     Write-host "`n0) Exit Tool`n"
     $option = read-host "What would you like to do?"
