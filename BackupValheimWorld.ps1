@@ -162,7 +162,7 @@ function RestoreValheimWolrd
                     $rp ++
                 }
 
-               $worldrp = Read-host "Choose a restore point"
+               [int]$worldrp = Read-host "Choose a restore point"
                if (($worldrp -gt $rp) -or ($worldrp -le 0)) { Write-host "`nInvalid Choice" -ForegroundColor red; start-sleep -Seconds 2; showmenu }               
                $confirm = Read-host "Would you like to restore $(($restoreworldoptions[$userchoice-1]).Name) to $(((Get-ChildItem "$(($restorepoints[$worldrp-1]).FullName)\*" | Sort-object -Property LastWriteTime -Descending)[0]).LastWriteTime)? y/[n]"
                if ($confirm -ieq 'y')
@@ -267,7 +267,7 @@ function RestoreValheimChar
                 }
 
                 
-                $charrp = Read-host "Choose a restore point"
+                [int]$charrp = Read-host "Choose a restore point"
                 
                 if (($charrp -gt $rp) -or ($charrp -le 0)) { Write-host "`nInvalid Choice" -ForegroundColor red; start-sleep -Seconds 2; showmenu }
                 
